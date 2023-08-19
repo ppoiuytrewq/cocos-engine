@@ -66,6 +66,15 @@ private:
 
     static AAssetManager *assetmanager;
     static ZipFile *obbfile;
+
+    struct FileInfo {
+        int gzip;
+        int oriSize;
+        int offset;
+        int len;
+    };
+    static ccstd::unordered_map<ccstd::string, FileUtilsAndroid::FileInfo*> *assetsMap;
+    static ccstd::string *assetBinPath;
 };
 
 // end of platform group

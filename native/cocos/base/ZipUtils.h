@@ -75,6 +75,7 @@ public:
         * @since v1.0.0
         */
     static uint32_t inflateMemoryWithHint(unsigned char *in, uint32_t inLength, unsigned char **out, uint32_t outLengthHint);
+    static int inflateMemoryWithHint1(unsigned char *in, uint32_t inLength, unsigned char *out, uint32_t *outLength, uint32_t outLengthHint);
 
     /**
          * Inflates a GZip file into memory.

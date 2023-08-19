@@ -139,6 +139,62 @@ inline unsigned int ZipUtils::checksumPvr(const unsigned int *data, uint32_t len
 // Should buffer factor be 1.5 instead of 2 ?
 #define BUFFER_INC_FACTOR (2)
 
+int ZipUtils::inflateMemoryWithHint1(unsigned char *in, uint32_t inLength, unsigned char *out, uint32_t *outLength, uint32_t outLengthHint) {
+    /* ret value */
+    int err = Z_OK;
+    uint32_t bufferSize = outLengthHint;
+
+    z_stream descompressionStream; /* decompression stream */
+    descompressionStream.zalloc = static_cast<alloc_func>(nullptr);
+    descompressionStream.zfree = static_cast<free_func>(nullptr);
+    descompressionStream.opaque = static_cast<voidpf>(nullptr);
+
+    descompressionStream.next_in = in;
+    descompressionStream.avail_in = inLength;
+    descompressionStream.next_out = out;
+    descompressionStream.avail_out = bufferSize;
+
+    /* window size to hold 256k */
+    if ((err = inflateInit2(&descompressionStream, 15 + 32)) != Z_OK) {
+        return err;
+    }
+
+    for (;;) {
+        err = inflate(&descompressionStream, Z_NO_FLUSH);
+
+        if (err == Z_STREAM_END) {
+            break;
+        }
+
+        switch (err) {
+            case Z_NEED_DICT:
+                err = Z_DATA_ERROR;
+            case Z_DATA_ERROR:
+            case Z_MEM_ERROR:
+                inflateEnd(&descompressionStream);
+                return err;
+        }
+
+        // not enough memory ?
+        if (err != Z_STREAM_END) {
+            /* not enough memory, ouch */
+            if (!*out) {
+                CC_LOG_DEBUG("ZipUtils: realloc failed");
+                inflateEnd(&descompressionStream);
+                return Z_MEM_ERROR;
+            }
+
+            descompressionStream.next_out = out + bufferSize;
+            descompressionStream.avail_out = static_cast<unsigned int>(bufferSize);
+            bufferSize *= BUFFER_INC_FACTOR;
+        }
+    }
+
+    *outLength = bufferSize - descompressionStream.avail_out;
+    err = inflateEnd(&descompressionStream);
+    return err;
+}
+
 int ZipUtils::inflateMemoryWithHint(unsigned char *in, uint32_t inLength, unsigned char **out, uint32_t *outLength, uint32_t outLengthHint) {
     /* ret value */
     int err = Z_OK;
