@@ -73,5 +73,7 @@ export default function preprocess (task: Task, done: ((err?: Error | null) => v
         }
     }
     subTask.recycle();
-    done(err);
+    if (done) {
+        done(err);
+    }
 }

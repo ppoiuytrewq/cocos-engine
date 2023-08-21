@@ -25,7 +25,7 @@
 
 import { Asset } from '../assets/asset';
 import { SceneAsset } from '../assets/scene-asset';
-import { error, errorID, cclegacy } from '../../core';
+import { error, errorID, cclegacy, sys } from '../../core';
 import Config, { IAddressableInfo, IAssetInfo, IConfigOption, ISceneInfo } from './config';
 import { releaseManager } from './release-manager';
 import RequestItem from './request-item';
@@ -556,7 +556,13 @@ export default class Bundle {
     public get<T extends Asset> (path: string, type?: Constructor<T> | null): T | null {
         const info = this.getInfoWithPath(path, type);
         if (info) {
-            return assets.get(info.uuid) as T || null;
+            let asset: T = assets.get(info.uuid) as T || null;
+            if (!asset && sys.isNative) {
+                const options = { __requestType__: RequestType.PATH, type, bundle: this.name, __outputAsArray__: Array.isArray([path]) };
+                cclegacy.assetManager.loadAnySync([path], options);
+                asset = assets.get(info.uuid) as T || null;
+            }
+            return asset;
         }
 
         return null;
