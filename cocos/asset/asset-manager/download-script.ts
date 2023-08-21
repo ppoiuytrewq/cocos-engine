@@ -29,7 +29,7 @@ const ccdocument = ccwindow.document;
 
 const downloaded = {};
 
-export default function downloadScript (
+export function downloadScript (
     url: string,
     options: Record<string, any>,
     onComplete: ((err: Error | null, data?: any | null) => void),
@@ -67,4 +67,10 @@ export default function downloadScript (
     script.addEventListener('error', errorHandler, false);
     ccdocument.body.appendChild(script);
     return script;
+}
+
+export function removeDownloadScript (
+    url: string,
+) {
+    delete downloaded[url];
 }

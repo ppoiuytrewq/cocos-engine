@@ -27,7 +27,7 @@ import { sys, js, misc, path, cclegacy } from '../../core';
 import Cache from './cache';
 import downloadDomImage from './download-dom-image';
 import downloadFile from './download-file';
-import downloadScript from './download-script';
+import { downloadScript, removeDownloadScript } from './download-script';
 import { files } from './shared';
 import { retry, RetryFunction, urlAppendTimestamp } from './utilities';
 import { IConfigOption } from './config';
@@ -261,6 +261,8 @@ export class Downloader {
      * @deprecated Since v3.7, this is an engine internal interface. You can easily implement the functionality of this API using XMLHttpRequest.
      */
     public downloadScript = downloadScript;
+
+    public removeDownloadScript = removeDownloadScript;
 
     // default handler map
     private _downloaders: Record<string, DownloadHandler> = {
