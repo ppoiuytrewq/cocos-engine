@@ -46,6 +46,8 @@
 
 #include "tinydir/tinydir.h"
 #include "tinyxml2/tinyxml2.h"
+#include "CC20.h"
+#include "base/ZipUtils.h"
 
 namespace cc {
 
@@ -588,9 +590,28 @@ FileUtils::Status FileUtils::getContents(const ccstd::string &filename, Resizabl
     size_t readsize = fread(buffer->buffer(), 1, size, fp);
     fclose(fp);
 
-    if (readsize < size) {
-        buffer->resize(readsize);
-        return Status::READ_FAILED;
+    unsigned char *pp = static_cast<unsigned char *>(buffer->buffer());
+    if (readsize >= 5) {
+        unsigned char *p = pp + (readsize - 5);
+        // 0xee, 0xd3, 0xc9, 0xb1, 0xa6
+        if (*p == 0xee && *(p + 1) == 0xd3 && *(p + 2) == 0xc9 && *(p + 3) == 0xb1 && *(p + 4) == 0xa6) {
+            readsize -= 5;
+            bool b1024 = (filename.rfind(".jpg") == filename.size() - 4);
+            b1024 = b1024 || (filename.rfind(".png") == filename.size() - 4);
+            b1024 = b1024 || (filename.rfind(".webp") == filename.size() - 5);
+            CC20::XOR(pp, b1024 ? std::min(readsize, static_cast<size_t>(1024)) : readsize, "wYfuPsWrYvZSLIfNxqjnxln6GrG64c4Y");
+        }
+    }
+
+    if (readsize >= 2 && ZipUtils::isGZipBuffer(pp, 2)) {
+        uint8_t *outGzip{nullptr};
+        uint32_t outLength = ZipUtils::inflateMemory(pp, readsize, &outGzip);
+        if (outLength <= 0)
+            CC_LOG_ERROR("asset (%s) gzip inflate fail", filename.c_str());
+        else {
+            buffer->resize(outLength);
+            memcpy(buffer->buffer(), outGzip, outLength);
+        }
     }
 
     return Status::OK;
