@@ -539,25 +539,6 @@ export class AssetManager {
         pipeline.async(task);
     }
 
-    public loadAnySync (requests: string | string[] | IRequest | Array<IRequest>, options: { [key: string]: any, preset?: string } | null, onProgress: ((finished: number, total: number, item: RequestItem) => void) | null, onComplete: ((err: Error | null, data: any) => void) | null): void;
-    public loadAnySync (requests: string | string[] | IRequest | Array<IRequest>, onProgress: ((finished: number, total: number, item: RequestItem) => void) | null, onComplete: ((err: Error | null, data: any) => void) | null): void;
-    public loadAnySync (requests: string | string[] | IRequest | Array<IRequest>, options: { [key: string]: any, preset?: string } | null, onComplete?: ((err: Error | null, data: any) => void) | null): void;
-    public loadAnySync<T extends Asset> (requests: string, onComplete?: ((err: Error | null, data: T) => void) | null): void;
-    public loadAnySync<T extends Asset> (requests: string[], onComplete?: ((err: Error | null, data: T[]) => void) | null): void;
-    public loadAnySync (requests: string | string[] | IRequest | Array<IRequest>, onComplete?: ((err: Error | null, data: any) => void) | null): void;
-    public loadAnySync (
-        requests: string | string[] | IRequest | Array<IRequest>,
-        options?: { [key: string]: any, preset?: string } | ((finished: number, total: number, item: RequestItem) => void) | ((err: Error | null, data: any) => void) | null,
-        onProgress?: ((finished: number, total: number, item: RequestItem) => void) | ((err: Error | null, data: any) => void) | null,
-        onComplete?: ((err: Error | null, data: any) => void) | null,
-    ) {
-        const { options: opts, onProgress: onProg, onComplete: onComp } = parseParameters(options, onProgress || (() => {}), onComplete || (() => {}));
-        opts.preset = opts.preset || 'default';
-        requests = Array.isArray(requests) ? requests.slice() : requests;
-        const task = Task.create({ input: requests, onProgress: onProg, onComplete: asyncify(onComp), options: opts });
-        pipeline.sync(task);
-    }
-
     /**
      * @en
      * General interface used to preload assets with a progression callback and a complete callback.It is highly recommended that you use

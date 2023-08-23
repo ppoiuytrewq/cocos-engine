@@ -556,12 +556,7 @@ export default class Bundle {
     public get<T extends Asset> (path: string, type?: Constructor<T> | null): T | null {
         const info = this.getInfoWithPath(path, type);
         if (info) {
-            let asset: T = assets.get(info.uuid) as T || null;
-            if (!asset && sys.isNative) {
-                const options = { __requestType__: RequestType.PATH, type, bundle: this.name, __outputAsArray__: Array.isArray([path]) };
-                cclegacy.assetManager.loadAnySync([path], options);
-                asset = assets.get(info.uuid) as T || null;
-            }
+            const asset: T = assets.get(info.uuid) as T || null;
             return asset;
         }
 
