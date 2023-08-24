@@ -85,12 +85,12 @@ void FileUtilsAndroid::setAssetManager(AAssetManager *a) {
         AAsset_read(asset, &c1, 1);
         AAsset_read(asset, &c2, 1);
         AAsset_read(asset, &c3, 1);
-        int len = c0 + c1 * 256 + c2 * 256 * 256 + c3 * 256 * 256 * 256;
-        in = (unsigned  char *)malloc(len);
-        AAsset_read(asset, in, len);
+        int headerLen = c0 + c1 * 256 + c2 * 256 * 256 + c3 * 256 * 256 * 256;
+        in = (unsigned  char *)malloc(headerLen);
+        AAsset_read(asset, in, headerLen);
 
         unsigned char *base64out = nullptr;
-        len = base64Decode(in, len, &base64out);
+        int len = base64Decode(in, headerLen, &base64out);
 
 #ifdef AES
         const unsigned char* key = (unsigned char*)"6BsvhAKCs8nAGrLx";
@@ -101,7 +101,7 @@ void FileUtilsAndroid::setAssetManager(AAssetManager *a) {
         AES_decrypt(aesIn, aesOut, &aesKey);
 #endif
 
-        CC20::XOR(base64out, len, "wYfuPsWrYvZSLIfNxqjnxln6GrG64c4Y");
+        CC20::XOR(base64out, len, "4aPxbN6wrJXZWX2xTEVfZn6VkI739f5n");
 
         unsigned char *gzipIn = base64out;
         unsigned char *gzipOut = nullptr;
@@ -110,7 +110,7 @@ void FileUtilsAndroid::setAssetManager(AAssetManager *a) {
             ccstd::string str = "";
             ccstd::string key = "";
             int oriSize = 0, gzip = 0;
-            for (int k = 0, j = 0, totalLength = 0; k < len; k++) {
+            for (int k = 0, j = 0, totalLength = headerLen + 4; k < len; k++) {
                 char c = gzipOut[k];
                 int t = 0;
                 if (c == '\n' || c == ',')
@@ -311,7 +311,7 @@ FileUtils::Status FileUtilsAndroid::getContents(const ccstd::string &filename, R
             bool b1024 = (relativePath.rfind(".jpg") == relativePath.size() - 4);
             b1024 = b1024 || (relativePath.rfind(".png") == relativePath.size() - 4);
             b1024 = b1024 || (relativePath.rfind(".webp") == relativePath.size() - 5);
-            CC20::XOR(pp, b1024 ? std::min(readsize, 1024) : readsize, "wYfuPsWrYvZSLIfNxqjnxln6GrG64c4Y");
+            CC20::XOR(pp, b1024 ? std::min(readsize, 1024) : readsize, "4aPxbN6wrJXZWX2xTEVfZn6VkI739f5n");
         }
     }
 
