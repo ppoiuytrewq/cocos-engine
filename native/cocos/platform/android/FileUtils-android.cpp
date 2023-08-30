@@ -69,7 +69,6 @@ void FileUtilsAndroid::setAssetManager(AAssetManager *a) {
     cc::FileUtilsAndroid::assetmanager = a;
 
     cc::FileUtilsAndroid::assetsMap = new ccstd::unordered_map<ccstd::string, FileUtilsAndroid::FileInfo*>();
-
     if (assetBinPath == nullptr) {
         {
             ccstd::string s = "___________________________Assets.bin___________________________";
@@ -106,6 +105,7 @@ void FileUtilsAndroid::setAssetManager(AAssetManager *a) {
         unsigned char *gzipIn = base64out;
         unsigned char *gzipOut = nullptr;
         if (ZipUtils::isGZipBuffer(gzipIn, 2)) {
+
             len = ZipUtils::inflateMemory(gzipIn, len, &gzipOut);
             ccstd::string str = "";
             ccstd::string key = "";
@@ -294,7 +294,7 @@ FileUtils::Status FileUtilsAndroid::getContents(const ccstd::string &filename, R
         return FileUtils::Status::OPEN_FAILED;
     }
 
-    int a = iter->second->oriSize * (iter->second->gzip ? 2 : 1);
+    int a = iter->second->oriSize * (iter->second->gzip ? 2 : 1) + 5;
     int b = (iter->second->gzip ? iter->second->len : 0);
     buffer->resize(a + b);
     AAsset_seek(asset, iter->second->offset, 0);
@@ -321,6 +321,8 @@ FileUtils::Status FileUtilsAndroid::getContents(const ccstd::string &filename, R
             LOGD("asset (%s) gzip inflate fail", filename.c_str());
         buffer->resize(iter->second->oriSize);
     }
+    else
+        buffer->resize(readsize);
 
     return FileUtils::Status::OK;
 }
