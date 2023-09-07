@@ -124,6 +124,7 @@ export declare class NativeUIModelProxy {
     attachDrawInfo();
     attachNode(node);
     clearModels();
+    setStride(stride);
 }
 
 export declare class NativeStencilManager {

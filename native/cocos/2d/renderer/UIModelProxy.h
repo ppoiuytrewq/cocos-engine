@@ -44,6 +44,7 @@ public:
     void attachDrawInfo();
     void attachNode(Node* node);
     void clearModels();
+    void setStride(const int stride);
 
 protected:
     CC_DISALLOW_COPY_MOVE_ASSIGN(UIModelProxy);

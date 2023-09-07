@@ -68,7 +68,6 @@ void FileUtilsAndroid::setAssetManager(AAssetManager *a) {
 
     cc::FileUtilsAndroid::assetmanager = a;
 
-    cc::FileUtilsAndroid::assetsMap = new ccstd::unordered_map<ccstd::string, FileUtilsAndroid::FileInfo*>();
     if (assetBinPath == nullptr) {
         {
             ccstd::string s = "___________________________Assets.bin___________________________";
@@ -80,6 +79,9 @@ void FileUtilsAndroid::setAssetManager(AAssetManager *a) {
         unsigned char *in;
         uint8_t c0 = 0, c1 = 0, c2 = 0, c3 = 0;
         AAsset *asset = AAssetManager_open(assetmanager, assetBinPath->c_str(), AASSET_MODE_UNKNOWN);
+        if (asset == nullptr)
+            return;
+        cc::FileUtilsAndroid::assetsMap = new ccstd::unordered_map<ccstd::string, FileUtilsAndroid::FileInfo*>();
         AAsset_read(asset, &c0, 1);
         AAsset_read(asset, &c1, 1);
         AAsset_read(asset, &c2, 1);
@@ -186,15 +188,19 @@ bool FileUtilsAndroid::isFileExistInternal(const ccstd::string &strFilePath) con
         if (obbfile && obbfile->fileExists(s)) {
             bFound = true;
         } else if (FileUtilsAndroid::assetmanager) {
-            auto iter = assetsMap->find(strFilePath);
-            bFound = iter != assetsMap->end();
-//            AAsset *aa = AAssetManager_open(FileUtilsAndroid::assetmanager, s, AASSET_MODE_UNKNOWN);
-//            if (aa) {
-//                bFound = true;
-//                AAsset_close(aa);
-//            } else {
-//                // CC_LOG_DEBUG("[AssetManager] ... in APK %s, found = false!", strFilePath.c_str());
-//            }
+            if (assetsMap == nullptr) {
+               AAsset *aa = AAssetManager_open(FileUtilsAndroid::assetmanager, s, AASSET_MODE_UNKNOWN);
+               if (aa) {
+                   bFound = true;
+                   AAsset_close(aa);
+               } else {
+                   // CC_LOG_DEBUG("[AssetManager] ... in APK %s, found = false!", strFilePath.c_str());
+               }
+            }
+            else {
+                auto iter = assetsMap->find(strFilePath);
+                bFound = iter != assetsMap->end();
+            }
         }
     } else {
         FILE *fp = fopen(strFilePath.c_str(), "r");
@@ -285,46 +291,70 @@ FileUtils::Status FileUtilsAndroid::getContents(const ccstd::string &filename, R
         return FileUtils::Status::NOT_INITIALIZED;
     }
 
-    auto iter = assetsMap->find("@assets/" + relativePath);
-    if (iter == assetsMap->end())
-        return FileUtils::Status::NOT_EXISTS;
-    AAsset *asset = AAssetManager_open(assetmanager, assetBinPath->c_str(), AASSET_MODE_UNKNOWN);
-    if (nullptr == asset) {
-        LOGD("asset (%s) is nullptr", filename.c_str());
-        return FileUtils::Status::OPEN_FAILED;
-    }
-
-    int a = iter->second->oriSize * (iter->second->gzip ? 2 : 1) + 5;
-    int b = (iter->second->gzip ? iter->second->len : 0);
-    buffer->resize(a + b);
-    AAsset_seek(asset, iter->second->offset, 0);
-
-    unsigned char *pp = (unsigned char *)(buffer->buffer()) + (iter->second->gzip ? a : 0);
-    int readsize = AAsset_read(asset, pp, iter->second->len);
-    AAsset_close(asset);
-
-    if (readsize >= 5) {
-        unsigned char *p = pp + (readsize - 5);
-        // 0xee, 0xd3, 0xc9, 0xb1, 0xa6
-        if (*p == 0xee && *(p + 1) == 0xd3 && *(p + 2) == 0xc9 && *(p + 3) == 0xb1 && *(p + 4) == 0xa6) {
-            readsize -= 5;
-            bool b1024 = (relativePath.rfind(".jpg") == relativePath.size() - 4);
-            b1024 = b1024 || (relativePath.rfind(".png") == relativePath.size() - 4);
-            b1024 = b1024 || (relativePath.rfind(".webp") == relativePath.size() - 5);
-            CC20::XOR(pp, b1024 ? std::min(readsize, 1024) : readsize, "4aPxbN6wrJXZWX2xTEVfZn6VkI739f5n");
+    if (nullptr == assetsMap) {
+        AAsset *asset = AAssetManager_open(assetmanager, relativePath.data(), AASSET_MODE_UNKNOWN);
+        if (nullptr == asset) {
+            LOGD("asset (%s) is nullptr", filename.c_str());
+            return FileUtils::Status::OPEN_FAILED;
         }
-    }
 
-    if (iter->second->gzip) {
-        uint32_t outLength;
-        if (ZipUtils::inflateMemoryWithHint1(pp, readsize, (unsigned char *)(buffer->buffer()), &outLength, a + b))
-            LOGD("asset (%s) gzip inflate fail", filename.c_str());
-        buffer->resize(iter->second->oriSize);
-    }
-    else
-        buffer->resize(readsize);
+        auto size = AAsset_getLength(asset);
+        buffer->resize(size);
 
-    return FileUtils::Status::OK;
+        int readsize = AAsset_read(asset, buffer->buffer(), size);
+        AAsset_close(asset);
+
+        if (readsize < size) {
+            if (readsize >= 0) {
+                buffer->resize(readsize);
+            }
+            return FileUtils::Status::READ_FAILED;
+        }
+
+        return FileUtils::Status::OK;
+    }
+    else {
+        auto iter = assetsMap->find("@assets/" + relativePath);
+        if (iter == assetsMap->end())
+            return FileUtils::Status::NOT_EXISTS;
+        AAsset *asset = AAssetManager_open(assetmanager, assetBinPath->c_str(), AASSET_MODE_UNKNOWN);
+        if (nullptr == asset) {
+            LOGD("asset (%s) is nullptr", filename.c_str());
+            return FileUtils::Status::OPEN_FAILED;
+        }
+
+        int a = iter->second->oriSize * (iter->second->gzip ? 2 : 1) + 5;
+        int b = (iter->second->gzip ? iter->second->len : 0);
+        buffer->resize(a + b);
+        AAsset_seek(asset, iter->second->offset, 0);
+
+        unsigned char *pp = (unsigned char *)(buffer->buffer()) + (iter->second->gzip ? a : 0);
+        int readsize = AAsset_read(asset, pp, iter->second->len);
+        AAsset_close(asset);
+
+        if (readsize >= 5) {
+            unsigned char *p = pp + (readsize - 5);
+            // 0xee, 0xd3, 0xc9, 0xb1, 0xa6
+            if (*p == 0xee && *(p + 1) == 0xd3 && *(p + 2) == 0xc9 && *(p + 3) == 0xb1 && *(p + 4) == 0xa6) {
+                readsize -= 5;
+                bool b1024 = (relativePath.rfind(".jpg") == relativePath.size() - 4);
+                b1024 = b1024 || (relativePath.rfind(".png") == relativePath.size() - 4);
+                b1024 = b1024 || (relativePath.rfind(".webp") == relativePath.size() - 5);
+                CC20::XOR(pp, b1024 ? std::min(readsize, 1024) : readsize, "4aPxbN6wrJXZWX2xTEVfZn6VkI739f5n");
+            }
+        }
+
+        if (iter->second->gzip) {
+            uint32_t outLength;
+            if (ZipUtils::inflateMemoryWithHint1(pp, readsize, (unsigned char *)(buffer->buffer()), &outLength, a + b))
+                LOGD("asset (%s) gzip inflate fail", filename.c_str());
+            buffer->resize(iter->second->oriSize);
+        }
+        else
+            buffer->resize(readsize);
+
+        return FileUtils::Status::OK;
+    }
 }
 
 ccstd::string FileUtilsAndroid::getWritablePath() const {

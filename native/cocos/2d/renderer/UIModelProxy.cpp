@@ -35,6 +35,27 @@ UIModelProxy::~UIModelProxy() {
     destroy();
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "google-readability-braces-around-statements"
+void UIModelProxy::setStride(const int stride) {
+    if (_stride == stride)
+        return;
+    _stride = stride;
+    if (_stride >= 36)
+        _attributes.push_back(gfx::Attribute{"a_c0", gfx::Format::R32F});
+    if (_stride >= 40)
+        _attributes.push_back(gfx::Attribute{"a_c1", gfx::Format::R32F});
+    if (_stride >= 44)
+        _attributes.push_back(gfx::Attribute{"a_c2", gfx::Format::R32F});
+    if (_stride >= 48)
+        _attributes.push_back(gfx::Attribute{"a_c3", gfx::Format::R32F});
+    if (_stride >= 52)
+        _attributes.push_back(gfx::Attribute{"a_c4", gfx::Format::R32F});
+    if (_stride >= 56)
+        _attributes.push_back(gfx::Attribute{"a_c5", gfx::Format::R32F});
+}
+#pragma clang diagnostic pop
+
 void UIModelProxy::initModel(Node* node) {
     _model = Root::getInstance()->createModel<scene::Model>();
     _model->setNode(node);
