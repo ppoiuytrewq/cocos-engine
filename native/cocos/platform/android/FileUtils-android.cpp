@@ -81,6 +81,7 @@ void FileUtilsAndroid::setAssetManager(AAssetManager *a) {
         AAsset *asset = AAssetManager_open(assetmanager, assetBinPath->c_str(), AASSET_MODE_UNKNOWN);
         if (asset == nullptr)
             return;
+        AAsset_seek(asset, 64, 0);
         cc::FileUtilsAndroid::assetsMap = new ccstd::unordered_map<ccstd::string, FileUtilsAndroid::FileInfo*>();
         AAsset_read(asset, &c0, 1);
         AAsset_read(asset, &c1, 1);
@@ -112,7 +113,7 @@ void FileUtilsAndroid::setAssetManager(AAssetManager *a) {
             ccstd::string str = "";
             ccstd::string key = "";
             int oriSize = 0, gzip = 0;
-            for (int k = 0, j = 0, totalLength = headerLen + 4; k < len; k++) {
+            for (int k = 0, j = 0, totalLength = 64 + 4 + headerLen; k < len; k++) {
                 char c = gzipOut[k];
                 int t = 0;
                 if (c == '\n' || c == ',')
@@ -340,7 +341,7 @@ FileUtils::Status FileUtilsAndroid::getContents(const ccstd::string &filename, R
                 bool b1024 = (relativePath.rfind(".jpg") == relativePath.size() - 4);
                 b1024 = b1024 || (relativePath.rfind(".png") == relativePath.size() - 4);
                 b1024 = b1024 || (relativePath.rfind(".webp") == relativePath.size() - 5);
-                CC20::XOR(pp, b1024 ? std::min(readsize, 1024) : readsize, "4aPxbN6wrJXZWX2xTEVfZn6VkI739f5n");
+                CC20::XOR(pp, b1024 && false ? std::min(readsize, 1024) : readsize, "4aPxbN6wrJXZWX2xTEVfZn6VkI739f5n");
             }
         }
 
