@@ -1,7 +1,7 @@
-/****************************************************************************
- Copyright (c) 2022 Xiamen Yaji Software Co., Ltd.
+/*
+ Copyright (c) 2020 Xiamen Yaji Software Co., Ltd.
 
- http://www.cocos.com
+ https://www.cocos.com/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated engine source code (the "Software"), a limited,
@@ -21,21 +21,6 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
-****************************************************************************/
+ */
 
-#import "ViewController.h"
-#import "platform/mac/View.h"
-
-@implementation ViewController {
-    View* _view;
-}
-
-- (instancetype)initWithSize:(NSRect)rect {
-    if (self = [super init]) {
-        _view = [[View alloc] initWithFrame:rect];
-        self.view = _view;
-    }
-    return self;
-}
-
-@end
+import '../cocos/physics-2d/box2d-wasm/instantiate';

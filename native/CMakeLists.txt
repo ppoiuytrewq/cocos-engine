@@ -82,6 +82,13 @@ if(USE_SERVER_MODE)
     add_definitions(-DCC_SERVER_MODE)
 endif()
 
+# Fix the issue: https://github.com/cocos/cocos-engine/issues/16190
+# std::unary_function was removed since clang 15
+# The macro has already been defined in boost/config/stdlib/dinkumware.hpp(258,1),
+# so no need to define it again to avoid 'macro redefinition' error.
+if(NOT WINDOWS)
+    add_definitions(-DBOOST_NO_CXX98_FUNCTION_BASE)
+endif()
 
 add_definitions(-DCC_NETMODE_CLIENT=0)
 add_definitions(-DCC_NETMODE_LISTEN_SERVER=1)
@@ -519,7 +526,7 @@ cocos_source_files(
 )
 
 ############ main
-if(NOT USE_SERVER_MODE AND (WINDOWS OR LINUX))
+if(NOT USE_SERVER_MODE AND (WINDOWS OR LINUX OR MACOSX))
 cocos_source_files(
     cocos/platform/SDLHelper.h
     cocos/platform/SDLHelper.cpp
@@ -568,8 +575,6 @@ elseif(MACOSX)
     cocos_source_files(
         cocos/platform/mac/MacPlatform.mm
         cocos/platform/mac/MacPlatform.h
-        cocos/platform/mac/ViewController.h
-        cocos/platform/mac/ViewController.mm
         cocos/platform/mac/AppDelegate.h
         cocos/platform/mac/AppDelegate.mm
     )
@@ -1410,7 +1415,8 @@ cocos_source_files(
                  cocos/renderer/pipeline/custom/LayoutGraphTypes.h
                  cocos/renderer/pipeline/custom/LayoutGraphUtils.cpp
                  cocos/renderer/pipeline/custom/LayoutGraphUtils.h
-                 cocos/renderer/pipeline/custom/NativeDefaultScene.cpp
+                 cocos/renderer/pipeline/custom/NativeBuiltinUtils.cpp
+                 cocos/renderer/pipeline/custom/NativeBuiltinUtils.h
                  cocos/renderer/pipeline/custom/NativeExecutor.cpp
                  cocos/renderer/pipeline/custom/NativeFactory.cpp
                  cocos/renderer/pipeline/custom/NativeFwd.h
@@ -1422,10 +1428,13 @@ cocos_source_files(
                  cocos/renderer/pipeline/custom/NativePools.cpp
                  cocos/renderer/pipeline/custom/NativeProgramLibrary.cpp
                  cocos/renderer/pipeline/custom/NativeRenderGraph.cpp
+                 cocos/renderer/pipeline/custom/NativeRenderGraphUtils.cpp
+                 cocos/renderer/pipeline/custom/NativeRenderGraphUtils.h
                  cocos/renderer/pipeline/custom/NativeRenderQueue.cpp
                  cocos/renderer/pipeline/custom/NativeRenderingModule.cpp
                  cocos/renderer/pipeline/custom/NativeResourceGraph.cpp
                  cocos/renderer/pipeline/custom/NativeSceneCulling.cpp
+                 cocos/renderer/pipeline/custom/NativeSetter.cpp
                  cocos/renderer/pipeline/custom/NativeTypes.cpp
                  cocos/renderer/pipeline/custom/NativeTypes.h
                  cocos/renderer/pipeline/custom/NativeUtils.cpp
@@ -1532,6 +1541,8 @@ cocos_source_files(
                  cocos/scene/ReflectionProbeManager.h
                  cocos/scene/Skin.h
                  cocos/scene/Skin.cpp
+                 cocos/scene/PostSettings.h
+                 cocos/scene/PostSettings.cpp
 )
 
 ##### primitive
@@ -2368,7 +2379,10 @@ if(USE_MIDDLEWARE)
             NO_WERROR                cocos/editor-support/spine-creator-support/spine-cocos2dx.cpp
                                      cocos/editor-support/spine-creator-support/spine-cocos2dx.h
             NO_WERROR                cocos/editor-support/spine-creator-support/VertexEffectDelegate.cpp
-                                     cocos/editor-support/spine-creator-support/VertexEffectDelegate.h                                  
+                                     cocos/editor-support/spine-creator-support/VertexEffectDelegate.h
+                                     cocos/editor-support/spine-creator-support/VertexEffectDelegate.h
+            NO_WERROR                cocos/editor-support/spine-creator-support/Vector2.cpp
+                                     cocos/editor-support/spine-creator-support/Vector2.h
 
         )
         cocos_source_files(
@@ -3096,6 +3110,11 @@ if(MSVC)
         /wd4098 # defaultlib conflicts
         /wd4099 # PDB 'filename' was not found with 'object/library' or at 'path'; linking object as if no debug info
     )
+    target_link_options(${ENGINE_NAME} PUBLIC
+        /ignore:4099 # PDB 'filename' was not found with 'object/library' or at 'path'; linking object as if no debug info
+        /ignore:4098 # defaultlib 'library' conflicts with use of other libs; use /NODEFAULTLIB:library
+        /ignore:4204 # 'filename' is missing debugging information for referencing module; linking object as if no debug info
+    )
 endif()
 
 if(CC_USE_VULKAN)
@@ -3280,6 +3299,13 @@ if(APPLE)
             CC_KEYBOARD_SUPPORT
         )
     elseif(IOS)
+
+        if("${XCODE_VERSION}" VERSION_GREATER_EQUAL "15.0")
+            # For Xcode 15 and newer, add extra link flags to fix crash in __cxx_global_var_init.
+            message(STATUS "Using Xcode 15 or newer, adding extra link flags: -Wl,-ld_classic.")
+            target_link_options(${ENGINE_NAME} PUBLIC -Wl,-ld_classic)
+        endif()
+
         target_link_libraries(${ENGINE_NAME} PUBLIC
             "-framework QuartzCore"
             "-framework MetalPerformanceShaders"

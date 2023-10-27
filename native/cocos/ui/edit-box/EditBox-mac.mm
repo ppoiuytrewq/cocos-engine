@@ -27,6 +27,8 @@
 
 #include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_global.h"
+#include "engine/EngineEvents.h"
+#include "platform/SDLHelper.h"
 
 #import <AppKit/AppKit.h>
 
@@ -149,6 +151,9 @@ se::Value g_textInputCallback;
  Implementation of global helper functions.
  ************************************************************************/
 namespace {
+
+static cc::events::Resize::Listener resizeListener;
+
 void getTextInputCallback() {
     if (!g_textInputCallback.isUndefined())
         return;
@@ -237,10 +242,18 @@ void initTextField(const cc::EditBox::ShowInfo &showInfo) {
 }
 
 void init(const cc::EditBox::ShowInfo &showInfo) {
+    // SDL has an internal implementation of textinput ,
+    // which internally sends the SDL_TEXTINPUT event. Causing two events to be sent.
+    // So we need to stop the implementation of TextInput.
+    cc::SDLHelper::stopTextInput();
     if (showInfo.isMultiline)
         initTextView(showInfo);
     else
         initTextField(showInfo);
+
+    resizeListener.bind([&](int /*width*/, int /*height*/ , uint32_t /*windowId*/) {
+        cc::EditBox::complete();
+    });
 }
 } // namespace
 

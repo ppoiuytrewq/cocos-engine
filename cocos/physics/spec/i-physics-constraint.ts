@@ -96,5 +96,3 @@ export interface IConfigurableConstraint extends IBaseConstraint {
     setBreakForce(v: number): void;
     setBreakTorque(v: number): void;
 }
-
-export type IConeTwistConstraint = IBaseConstraint

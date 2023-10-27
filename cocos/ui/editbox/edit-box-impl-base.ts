@@ -37,27 +37,42 @@ export class EditBoxImplBase {
      */
     public _delegate: EditBox | null = null;
 
-    public init (delegate: EditBox) {}
+    /**
+     * @engineInternal dirty flag to update the matrix
+     */
+    public _dirtyFlag: boolean | null = false;
 
-    public onEnable () {}
+    public init (delegate: EditBox): void {
+        // To be overrode
+    }
 
-    public update () { }
+    public onEnable (): void {
+        // To be overrode
+    }
 
-    public onDisable () {
+    public update (): void {
+        // To be overrode
+    }
+
+    public onDisable (): void {
         if (this._editing) {
             this.endEditing();
         }
     }
 
-    public clear () {
+    public clear (): void {
         this._delegate = null;
     }
 
-    public setTabIndex (index: number) {}
+    public setTabIndex (index: number): void {
+        // To be overrode
+    }
 
-    public setSize (width: number, height: number) {}
+    public setSize (width: number, height: number): void {
+        // To be overrode
+    }
 
-    public setFocus (value) {
+    public setFocus (value): void {
         if (value) {
             this.beginEditing();
         } else {
@@ -65,11 +80,15 @@ export class EditBoxImplBase {
         }
     }
 
-    public isFocused () {
+    public isFocused (): boolean {
         return this._editing;
     }
 
-    public beginEditing () {}
+    public beginEditing (): void {
+        // To be overrode
+    }
 
-    public endEditing () {}
+    public endEditing (): void {
+        // To be overrode
+    }
 }

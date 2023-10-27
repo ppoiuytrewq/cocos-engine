@@ -101,7 +101,6 @@ void ReflectionProbe::syncCameraParams(const Camera* camera) {
     _camera->setNearClip(camera->getNearClip());
     _camera->setFarClip(camera->getFarClip());
     _camera->setFov(camera->getFov());
-    _camera->setVisibility(camera->getVisibility());
     _camera->setClearFlag(camera->getClearFlag());
     _camera->setClearColor(camera->getClearColor());
     _camera->setPriority(camera->getPriority() - 1);
@@ -267,7 +266,7 @@ void ReflectionProbe::updateCameraDir(int32_t faceIdx) {
     _camera->update(true);
 }
 
-Vec2 ReflectionProbe::getRenderArea() const {
+Vec2 ReflectionProbe::renderArea() const {
     if (_probeType == ProbeType::PLANAR) {
         return Vec2(_realtimePlanarTexture->getWidth(), _realtimePlanarTexture->getHeight());
     }
