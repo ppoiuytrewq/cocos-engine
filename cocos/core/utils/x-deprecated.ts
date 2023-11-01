@@ -116,7 +116,7 @@ const messageMap: Map<number, IMeessageItem> = new Map<number, IMeessageItem>();
 replacePropertyLog = (n: string, dp: string, n2: string, newp: string, f: Function, id: number, s: string): void => {
     const item = messageMap.get(id);
     if (item && item.logTimes > item.count) {
-        f(`'%s' is deprecated, please use '%s' instead. ${s}`, `${n}.${dp}`, `${n2}.${newp}`);
+        // f(`'%s' is deprecated, please use '%s' instead. ${s}`, `${n}.${dp}`, `${n2}.${newp}`);
         item.count++;
     }
 };
@@ -219,7 +219,7 @@ removeProperty = (owner: object, ownerName: string, properties: IRemoveItem[]): 
 markAsWarningLog = (n: string, dp: string, f: Function, id: number, s: string): void => {
     const item = messageMap.get(id);
     if (item && item.logTimes > item.count) {
-        f(`'%s' is deprecated. ${s}`, `${n}.${dp}`);
+        // f(`'%s' is deprecated. ${s}`, `${n}.${dp}`);
         item.count++;
     }
 };
