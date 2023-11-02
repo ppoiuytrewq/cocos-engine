@@ -137,7 +137,7 @@ void FileUtilsAndroid::setAssetManager(AAssetManager *a) {
                         info->offset = totalLength;
                         info->len = atoi(str.c_str());
                         totalLength += info->len;
-                        (*assetsMap)["@assets/data/" + key] = info;
+                        //(*assetsMap)["@assets/data/" + key] = info;
                         (*assetsMap)["@assets/" + key] = info;
                         j = -1;
                     }
@@ -170,7 +170,9 @@ bool FileUtilsAndroid::init() {
         obbfile = ccnew ZipFile(assetsPath);
     }
 
-    return FileUtils::init();
+    //return FileUtils::init();
+    _searchPathArray.push_back(_defaultResRootPath);
+    return true;
 }
 
 bool FileUtilsAndroid::isFileExistInternal(const ccstd::string &strFilePath) const {
@@ -305,13 +307,30 @@ FileUtils::Status FileUtilsAndroid::getContents(const ccstd::string &filename, R
         int readsize = AAsset_read(asset, buffer->buffer(), size);
         AAsset_close(asset);
 
-        if (readsize < size) {
-            if (readsize >= 0) {
-                buffer->resize(readsize);
+        if (readsize >= 5) {
+            unsigned char *p = (unsigned char *)(buffer->buffer()) + (readsize - 5);
+            // 0xee, 0xd3, 0xc9, 0xb1, 0xa6
+            if (*p == 0xee && *(p + 1) == 0xd3 && *(p + 2) == 0xc9 && *(p + 3) == 0xb1 && *(p + 4) == 0xa6) {
+                readsize -= 5;
+                bool b1024 = (relativePath.rfind(".jpg") == relativePath.size() - 4);
+                b1024 = b1024 || (relativePath.rfind(".png") == relativePath.size() - 4);
+                b1024 = b1024 || (relativePath.rfind(".webp") == relativePath.size() - 5);
+                CC20::XOR((unsigned char *)(buffer->buffer()), b1024 && true ? std::min(readsize, 1024) : readsize, "89c3e0b671c015ea2b38510c0f281269");
             }
-            return FileUtils::Status::READ_FAILED;
         }
 
+        if (ZipUtils::isGZipBuffer((unsigned char *)(buffer->buffer()), 2)) {
+            unsigned char *out{nullptr};
+            int outLen = ZipUtils::inflateMemory((unsigned char *)(buffer->buffer()),readsize, &out);
+            if (outLen > 0) {
+                buffer->resize(outLen);
+                memcpy(buffer->buffer(), out, outLen);
+                free(out);
+                readsize = outLen;
+            }
+        }
+
+        buffer->resize(readsize);
         return FileUtils::Status::OK;
     }
     else {

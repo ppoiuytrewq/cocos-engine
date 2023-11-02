@@ -611,6 +611,7 @@ FileUtils::Status FileUtils::getContents(const ccstd::string &filename, Resizabl
         else {
             buffer->resize(outLength);
             memcpy(buffer->buffer(), outGzip, outLength);
+            free(outGzip);
         }
     }
 
