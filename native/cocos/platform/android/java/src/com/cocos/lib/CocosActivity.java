@@ -208,7 +208,7 @@ public class CocosActivity extends GameActivity {
             ApplicationInfo ai = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
 
             Bundle bundle = ai.metaData;
-            String libName = bundle.getString("android.app.lib_name");
+            String libName = bundle.getString("android.app.lib_name", "cocos");
             if (TextUtils.isEmpty(libName)) {
                 Log.e(TAG, "can not find library, please config android.app.lib_name at AndroidManifest.xml");
             }
