@@ -29,11 +29,11 @@
 #include "platform/java/jni/JniHelper.h"
 
 #ifndef JCLS_EDITBOX
-    #define JCLS_EDITBOX "com/unity3d/player/UIEBActivity"
+    #define JCLS_EDITBOX "com/unity3d/player/UtsActivity"
 #endif
 
 #ifndef ORG_EDITBOX_CLASS_NAME
-    #define ORG_EDITBOX_CLASS_NAME com_unity3d_player_UIEBActivity
+    #define ORG_EDITBOX_CLASS_NAME com_unity3d_player_UtsActivity
 #endif
 #define JNI_EDITBOX(FUNC) JNI_METHOD1(ORG_EDITBOX_CLASS_NAME, FUNC)
 
