@@ -49,6 +49,8 @@
     #define JCLS_HELPER "com/cocos/lib/CocosHelper"
 #endif
 
+#define cc20key "4aPxbN6wrJXZWX2xTEVfZn6VkI739f5n"
+
 namespace cc {
 
 bool isOffline = false;
@@ -104,7 +106,7 @@ void FileUtilsAndroid::setAssetManager(AAssetManager *a) {
         AES_decrypt(aesIn, aesOut, &aesKey);
 #endif
 
-        CC20::XOR(base64out, len, "4aPxbN6wrJXZWX2xTEVfZn6VkI739f5n");
+        CC20::XOR(base64out, len, cc20key);
 
         unsigned char *gzipIn = base64out;
         unsigned char *gzipOut = nullptr;
@@ -316,7 +318,7 @@ FileUtils::Status FileUtilsAndroid::getContents(const ccstd::string &filename, R
                 bool b1024 = (relativePath.rfind(".jpg") == relativePath.size() - 4);
                 b1024 = b1024 || (relativePath.rfind(".png") == relativePath.size() - 4);
                 b1024 = b1024 || (relativePath.rfind(".webp") == relativePath.size() - 5);
-                CC20::XOR((unsigned char *)(buffer->buffer()), b1024 && isOffline ? std::min(readsize, 1024) : readsize, "89c3e0b671c015ea2b38510c0f281269");
+                CC20::XOR((unsigned char *)(buffer->buffer()), b1024 && isOffline ? std::min(readsize, 1024) : readsize, cc20key);
             }
         }
 
@@ -361,7 +363,7 @@ FileUtils::Status FileUtilsAndroid::getContents(const ccstd::string &filename, R
                 bool b1024 = (relativePath.rfind(".jpg") == relativePath.size() - 4);
                 b1024 = b1024 || (relativePath.rfind(".png") == relativePath.size() - 4);
                 b1024 = b1024 || (relativePath.rfind(".webp") == relativePath.size() - 5);
-                CC20::XOR(pp, b1024 && isOffline ? std::min(readsize, 1024) : readsize, "4aPxbN6wrJXZWX2xTEVfZn6VkI739f5n");
+                CC20::XOR(pp, b1024 && isOffline ? std::min(readsize, 1024) : readsize, cc20key);
             }
         }
 
