@@ -53,7 +53,7 @@
 
 namespace cc {
 
-bool isOffline = false;
+bool isOffline = true;
 AAssetManager *FileUtilsAndroid::assetmanager = nullptr;
 ZipFile *FileUtilsAndroid::obbfile = nullptr;
 ccstd::unordered_map<ccstd::string, FileUtilsAndroid::FileInfo*> *FileUtilsAndroid::assetsMap = nullptr;
@@ -318,6 +318,7 @@ FileUtils::Status FileUtilsAndroid::getContents(const ccstd::string &filename, R
                 bool b1024 = (relativePath.rfind(".jpg") == relativePath.size() - 4);
                 b1024 = b1024 || (relativePath.rfind(".png") == relativePath.size() - 4);
                 b1024 = b1024 || (relativePath.rfind(".webp") == relativePath.size() - 5);
+                b1024 = b1024 || (relativePath.rfind(".astc") == relativePath.size() - 5);
                 CC20::XOR((unsigned char *)(buffer->buffer()), b1024 && isOffline ? std::min(readsize, 1024) : readsize, cc20key);
             }
         }
@@ -363,6 +364,7 @@ FileUtils::Status FileUtilsAndroid::getContents(const ccstd::string &filename, R
                 bool b1024 = (relativePath.rfind(".jpg") == relativePath.size() - 4);
                 b1024 = b1024 || (relativePath.rfind(".png") == relativePath.size() - 4);
                 b1024 = b1024 || (relativePath.rfind(".webp") == relativePath.size() - 5);
+                b1024 = b1024 || (relativePath.rfind(".astc") == relativePath.size() - 5);
                 CC20::XOR(pp, b1024 && isOffline ? std::min(readsize, 1024) : readsize, cc20key);
             }
         }
